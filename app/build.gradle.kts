@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.devtools.ksp") version "1.9.10-1.0.13"
 }
 
 android {
@@ -71,4 +72,9 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+//    def rxhttp_version = '3.2.2'
+//    implementation ('com.squareup.okhttp3:okhttp:4.11.0')
+//    implementation ("com.github.liujingxing.rxhttp:rxhttp:$rxhttp_version")
+//    ksp "com.github.liujingxing.rxhttp:rxhttp-compiler:$rxhttp_version"
 }
