@@ -14,7 +14,7 @@
         android:autofillHints="请输入播放列表的id"
         android:ems="10"
         android:inputType="text"
-        android:text=""
+        android:text="PLRTW6h03whLlKyanwalcNMkf-FSXWfldn"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

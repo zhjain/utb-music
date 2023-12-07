@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.zj.music.databinding.ActivityMainBinding
+import com.zj.music.dto.Playlist
 import com.zj.music.dto.ResponseBody
 import com.zj.music.ui.theme.MusicTheme
 import kotlinx.coroutines.Dispatchers
@@ -33,27 +34,29 @@ class MainActivity : ComponentActivity() {
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         val token = "AIzaSyBVCOaK_vhgfKhOI_Uu8YR1IijEYp6a6Wg"
+//        binding.playlistId.set = "PLRTW6h03whLlKyanwalcNMkf-FSXWfldn"
         binding.queryButton.setOnClickListener {
             Log.e("myTest",binding.playlistId.text.toString())
             Toast.makeText(this,binding.playlistId.text.toString(),Toast.LENGTH_SHORT).show()
 
             runBlocking {
                 launch(this.coroutineContext) {
-                    RxHttp.get("https://youtube.googleapis.com/youtube/v3/playlistItems")
+                    RxHttp.get("https://youtube.googleapis.com/youtube/v3/playlists")
                         .addQuery("part", "snippet")
                         .addQuery("part", "contentDetails")
-                        .addQuery("playlistId", binding.playlistId.text.toString())
+                        .addQuery("part","player")
+                        .addQuery("id", binding.playlistId.text.toString())
                         .addQuery("maxResults",5000)
                         .addQuery("key", token)
-                        .toFlow<ResponseBody>().catch {
+                        .toFlow<Playlist>().catch {
                             val throwable = it
                             Log.e("myTest", throwable.message.toString())
                         }.collect {
                             Log.i("myTest", it.items.size.toString())
                             val intent: Intent = Intent(this@MainActivity, PlaylistActivity::class.java)
-                            intent.putExtra("playlistId",binding.playlistId.text.toString())
+                            intent.putExtra("playlist",it)
                             startActivity(intent)
-                            finish()
+//                            finish()
                         }
  }
             }
