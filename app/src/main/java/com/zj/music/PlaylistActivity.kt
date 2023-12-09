@@ -1,6 +1,7 @@
 package com.zj.music
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
@@ -21,6 +22,7 @@ import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import com.zj.music.databinding.ActivityPlaylistBinding
 import com.zj.music.dto.Playlist
+import com.zj.music.service.MusicPlayerService
 
 
 class PlaylistActivity : ComponentActivity() {
@@ -68,14 +70,17 @@ class PlaylistActivity : ComponentActivity() {
                 }
             }
 
-            binding.webView.settings.userAgentString = "PC"
+            binding.webView.settings.userAgentString =
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
             binding.webView.settings.mediaPlaybackRequiresUserGesture = true
-            val link :String
+            val link: String
             if (matchResult != null) {
-                link =  matchResult.groupValues[1]
+                link = matchResult.groupValues[1]
                 binding.webView.loadUrl(link)
+
+                startForegroundService(Intent(this, MusicPlayerService::class.java))
             } else {
-                Log.e("myTest","播放列表加载失败")
+                Log.e("myTest", "播放列表加载失败")
                 Toast.makeText(this, "播放列表加载失败", Toast.LENGTH_SHORT).show()
             }
 
