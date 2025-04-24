@@ -1,5 +1,6 @@
 package com.startend.youtubeaudioplayer.ui.player
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -11,19 +12,42 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.compose.LocalLifecycleOwner
+//import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.mutableStateOf
+import com.startend.youtubeaudioplayer.data.VideoInfo
+import com.startend.youtubeaudioplayer.service.YouTubeService
 
 @Composable
 fun Player(
     modifier: Modifier = Modifier
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
     val youTubePlayerState = remember { mutableStateOf<YouTubePlayer?>(null) }
     var isPlaying by remember { mutableStateOf(false) }
     var currentTime by remember { mutableFloatStateOf(0f) }
+    var videoInfo by remember { mutableStateOf<VideoInfo?>(null) }
+    val scope = rememberCoroutineScope()
+    val youTubeService = remember { YouTubeService() }
+
+    // 加载视频信息的函数
+    fun loadVideoInfo(videoId: String) {
+        scope.launch {
+            videoInfo = youTubeService.getVideoInfo(videoId)
+        }
+    }
+
+    // 在视频加载时获取信息
+    LaunchedEffect(Unit) {
+        loadVideoInfo("8ZP5eqm4JqM")
+    }
 
     Column(
         modifier = modifier
@@ -32,7 +56,7 @@ fun Player(
     ) {
         // YouTube Player (隐藏)
         Box(
-            modifier = Modifier
+            modifier = Modifier.height(0.dp).width(0.dp)
         ) {
             AndroidView(
                 factory = { context ->
@@ -41,7 +65,7 @@ fun Player(
                         initialize(object : AbstractYouTubePlayerListener() {
                             override fun onReady(youTubePlayer: YouTubePlayer) {
                                 youTubePlayerState.value = youTubePlayer
-                                youTubePlayer.loadVideo("c2Ecz0tI7IU", 0f)
+                                youTubePlayer.loadVideo("8ZP5eqm4JqM", 0f)
                             }
                         })
 //                        lifecycleOwner.lifecycle.addObserver(this)
@@ -79,13 +103,13 @@ fun Player(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Song Title",
+                    text = videoInfo?.title ?: "Loading...",
                     style = MaterialTheme.typography.titleLarge,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "Artist Name",
+                    text = videoInfo?.channelTitle ?: "",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
