@@ -1,10 +1,9 @@
 package com.startend.youtubeaudioplayer.data.repository
 
 import com.startend.youtubeaudioplayer.data.dao.VideoInfoDao
-import com.startend.youtubeaudioplayer.data.database.entity.VideoInfoEntity
+import com.startend.youtubeaudioplayer.data.database.entity.toEntity
 import com.startend.youtubeaudioplayer.data.database.entity.toVideoInfo
 import com.startend.youtubeaudioplayer.data.model.VideoInfo
-import com.startend.youtubeaudioplayer.data.database.entity.toEntity
 
 class VideoInfoRepository(private val videoInfoDao: VideoInfoDao) {
     

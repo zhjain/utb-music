@@ -56,10 +56,7 @@ fun YouTubePlayerView(
             },
             update = { view ->
                 // 当videoId变化时，更新播放的视频
-                youTubePlayerState.value?.let { player ->
-                    // 直接加载新视频
-                    player.loadVideo(videoId, 0f)
-                }
+                youTubePlayerState.value?.loadVideo(videoId, 0f)
             },
             modifier = Modifier.height(0.dp)
         )

@@ -49,8 +49,6 @@ import com.startend.youtubeaudioplayer.service.PlaybackService
 import com.startend.youtubeaudioplayer.service.YouTubeService
 import com.startend.youtubeaudioplayer.ui.playlist.PlaylistItemsScreen
 import com.startend.youtubeaudioplayer.ui.playlist.PlaylistScreen
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
@@ -153,7 +151,7 @@ fun Player(
         onDispose {
             try {
                 context.unbindService(serviceConnection)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 // 忽略解绑异常
             }
         }
@@ -328,6 +326,7 @@ fun Player(
                 isPlaying = !isPlaying
                 youTubePlayerState.value?.let { player ->
                     if (isPlaying) player.play() else player.pause()
+                    playbackService.value?.updatePlayingState(isPlaying)  // 添加这行来更新服务中的播放状态
                 }
             },
             onPreviousClick = { playPrevious() },

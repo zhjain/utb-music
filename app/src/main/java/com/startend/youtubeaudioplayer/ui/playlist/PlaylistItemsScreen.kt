@@ -4,8 +4,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -17,6 +20,7 @@ import coil.request.ImageRequest
 import com.startend.youtubeaudioplayer.data.database.AppDatabase
 import com.startend.youtubeaudioplayer.data.model.PlaylistItem
 import com.startend.youtubeaudioplayer.data.repository.PlaylistRepository
+import kotlinx.coroutines.launch
 
 @Composable
 fun PlaylistItemsScreen(
@@ -26,6 +30,7 @@ fun PlaylistItemsScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val database = remember { AppDatabase.getDatabase(context) }
     val playlistRepository = remember { PlaylistRepository(database.playlistDao()) }
     val playlistItems by playlistRepository.getPlaylistItems(playlistId).collectAsState(initial = emptyList())
@@ -39,7 +44,12 @@ fun PlaylistItemsScreen(
             PlaylistItemCard(
                 playlistItem = item,
                 isPlaying = item.videoId == currentPlayingItemId,
-                onClick = { onItemSelected(item) }
+                onClick = { onItemSelected(item) },
+                onDelete = {
+                    scope.launch {
+                        playlistRepository.deletePlaylistItem(item)
+                    }
+                }
             )
         }
     }
@@ -49,8 +59,11 @@ fun PlaylistItemsScreen(
 private fun PlaylistItemCard(
     playlistItem: PlaylistItem,
     isPlaying: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDelete: () -> Unit
 ) {
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -95,6 +108,34 @@ private fun PlaylistItemCard(
                     overflow = TextOverflow.Ellipsis
                 )
             }
+
+            // Delete button
+            IconButton(onClick = { showDeleteConfirm = true }) {
+                Icon(Icons.Default.Delete, contentDescription = "删除歌曲")
+            }
         }
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("确认删除") },
+            text = { Text("确定要删除歌曲 \"${playlistItem.title}\" 吗？") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDelete()
+                        showDeleteConfirm = false
+                    }
+                ) {
+                    Text("删除")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text("取消")
+                }
+            }
+        )
     }
 }

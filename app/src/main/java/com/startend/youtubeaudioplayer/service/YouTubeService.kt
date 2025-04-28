@@ -13,7 +13,7 @@ import com.startend.youtubeaudioplayer.data.repository.VideoInfoRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class YouTubeService(private val context: Context) {
+class YouTubeService(context: Context) {
     companion object {
         private const val API_KEY = "AIzaSyBVCOaK_vhgfKhOI_Uu8YR1IijEYp6a6Wg" // 替换为你的 API key
         private const val APPLICATION_NAME = "YoutubeAudioPlayer"

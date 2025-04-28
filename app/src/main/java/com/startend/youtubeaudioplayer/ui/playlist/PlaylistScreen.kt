@@ -7,8 +7,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -64,7 +66,12 @@ fun PlaylistScreen(
             items(playlists) { playlist ->
                 PlaylistCard(
                     playlist = playlist,
-                    onClick = { onPlaylistSelected(playlist.id) }
+                    onClick = { onPlaylistSelected(playlist.id) },
+                    onDelete = {
+                        scope.launch {
+                            playlistRepository.deletePlaylist(playlist)
+                        }
+                    }
                 )
             }
         }
@@ -86,13 +93,7 @@ fun PlaylistScreen(
 
     if (showImportDialog) {
         ImportPlaylistDialog(
-            onDismiss = { showImportDialog = false },
-            onImport = { playlistUrl ->
-                scope.launch {
-                    // TODO: 实现YouTube播放列表导入逻辑
-                }
-                showImportDialog = false
-            }
+            onDismiss = { showImportDialog = false }
         )
     }
 }
@@ -100,31 +101,65 @@ fun PlaylistScreen(
 @Composable
 private fun PlaylistCard(
     playlist: Playlist,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDelete: () -> Unit
 ) {
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .clickable(onClick = onClick)
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .padding(16.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = playlist.name,
-                style = MaterialTheme.typography.titleMedium
-            )
-            if (playlist.description.isNotEmpty()) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = playlist.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    text = playlist.name,
+                    style = MaterialTheme.typography.titleMedium
                 )
+                if (playlist.description.isNotEmpty()) {
+                    Text(
+                        text = playlist.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+            }
+            
+            IconButton(onClick = { showDeleteConfirm = true }) {
+                Icon(Icons.Default.Delete, contentDescription = "删除播放列表")
             }
         }
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("确认删除") },
+            text = { Text("确定要删除播放列表 \"${playlist.name}\" 吗？") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDelete()
+                        showDeleteConfirm = false
+                    }
+                ) {
+                    Text("删除")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text("取消")
+                }
+            }
+        )
     }
 }
 
@@ -172,8 +207,7 @@ private fun CreatePlaylistDialog(
 
 @Composable
 private fun ImportPlaylistDialog(
-    onDismiss: () -> Unit,
-    onImport: (String) -> Unit
+    onDismiss: () -> Unit
 ) {
     var playlistUrl by remember { mutableStateOf("") }
     var playlistName by remember { mutableStateOf("导入的歌单") }
