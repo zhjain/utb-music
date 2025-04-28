@@ -1,6 +1,7 @@
 [versions]
 agp = "8.9.2"
 kotlin = "2.0.21"
+ksp = "2.0.21-1.0.27"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -9,10 +10,15 @@ lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.1"
 composeBom = "2025.04.01"
 youtubeAudioApi = "12.1.1"
-youtubeDataApi = "1.25.0"
-googleApiServices = "v3-rev222-1.25.0"
-googleHttpClient = "1.32.1"
+#noinspection GradleDependency
+googleApiClient = "1.22.0"
+googleApiServices = "v3-rev183-1.22.0"
+googleHttpClient = "1.46.3"
+guava = "33.3.1-android"
 material = "1.7.8"
+coil = "2.5.0"
+room = "2.7.1"
+navigation = "2.8.9"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -31,11 +37,18 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-youtube-player = { group = "com.pierfrancescosoffritti.androidyoutubeplayer", name = "core", version.ref = "youtubeAudioApi" }
 androidx-compose-material = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "material" }
-androidx-youtube-data = { group = "com.google.api-client", name = "google-api-client", version.ref = "youtubeDataApi" }
+androidx-google-api-client = { group = "com.google.api-client", name = "google-api-client", version.ref = "googleApiClient" }
 androidx-google-api-services = { group = "com.google.apis", name = "google-api-services-youtube", version.ref = "googleApiServices" }
 androidx-google-http-client = { group = "com.google.http-client", name = "google-http-client-android", version.ref = "googleHttpClient" }
+androidx-guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+androidx-coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

@@ -20,3 +20,7 @@ local.properties
 /app/release/
 *.apk
 *.aab
+
+# 添加 Kotlin 编译器临时文件
+.kotlin/
+*.salive

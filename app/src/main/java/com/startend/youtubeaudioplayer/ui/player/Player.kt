@@ -1,31 +1,23 @@
 package com.startend.youtubeaudioplayer.ui.player
 
-import android.util.Log
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-//import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.mutableStateOf
 import com.startend.youtubeaudioplayer.data.VideoInfo
+import com.startend.youtubeaudioplayer.data.PlayMode
 import com.startend.youtubeaudioplayer.service.YouTubeService
+import com.startend.youtubeaudioplayer.ui.playlist.PlaylistScreen
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Player(
     modifier: Modifier = Modifier
@@ -33,20 +25,49 @@ fun Player(
     val youTubePlayerState = remember { mutableStateOf<YouTubePlayer?>(null) }
     var isPlaying by remember { mutableStateOf(false) }
     var currentTime by remember { mutableFloatStateOf(0f) }
+    var duration by remember { mutableFloatStateOf(0f) }
     var videoInfo by remember { mutableStateOf<VideoInfo?>(null) }
     val scope = rememberCoroutineScope()
     val youTubeService = remember { YouTubeService() }
-
-    // 加载视频信息的函数
-    fun loadVideoInfo(videoId: String) {
+    val sheetState = rememberModalBottomSheetState()
+    var showPlaylist by remember { mutableStateOf(false) }
+    var playMode by remember { mutableStateOf(PlayMode.SEQUENCE) }
+    
+    // 添加一个 LaunchedEffect 来获取视频信息
+    LaunchedEffect(Unit) {
         scope.launch {
-            videoInfo = youTubeService.getVideoInfo(videoId)
+            // 这里使用示例视频ID "8ZP5eqm4JqM"，你可以根据需要更改
+            val info = youTubeService.getVideoInfo("8ZP5eqm4JqM")
+            videoInfo = info
         }
     }
 
-    // 在视频加载时获取信息
-    LaunchedEffect(Unit) {
-        loadVideoInfo("8ZP5eqm4JqM")
+    if (showPlaylist) {
+        ModalBottomSheet(
+            onDismissRequest = { showPlaylist = false },
+            sheetState = sheetState
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    "播放列表",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                PlaylistScreen(
+                    onPlaylistSelected = { playlistId ->
+                        scope.launch {
+                            sheetState.hide()
+                            showPlaylist = false
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
     }
 
     Column(
@@ -54,122 +75,70 @@ fun Player(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // YouTube Player (隐藏)
-        Box(
-            modifier = Modifier.height(0.dp).width(0.dp)
+        YouTubePlayerView(
+            youTubePlayerState = youTubePlayerState,
+            onStateChange = { state -> 
+                isPlaying = state == PlayerConstants.PlayerState.PLAYING 
+            },
+            onCurrentSecond = { second -> currentTime = second },
+            onDuration = { videoDuration -> duration = videoDuration },
+            // 添加视频ID参数
+            videoId = "8ZP5eqm4JqM"
+        )
+
+        PlayerCover(
+            videoInfo = videoInfo,
+            modifier = Modifier.weight(1f)
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp)
         ) {
-            AndroidView(
-                factory = { context ->
-                    YouTubePlayerView(context).apply {
-                        enableAutomaticInitialization = false
-                        initialize(object : AbstractYouTubePlayerListener() {
-                            override fun onReady(youTubePlayer: YouTubePlayer) {
-                                youTubePlayerState.value = youTubePlayer
-                                youTubePlayer.loadVideo("8ZP5eqm4JqM", 0f)
-                            }
-                        })
-//                        lifecycleOwner.lifecycle.addObserver(this)
-                    }
-                },
-                modifier = Modifier.height(0.dp)
+            Text(
+                text = videoInfo?.title ?: "Loading...",
+                style = MaterialTheme.typography.titleLarge,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = videoInfo?.channelTitle ?: "",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
         }
 
-        // 播放器界面
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // 封面区域
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .aspectRatio(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Album,
-                    contentDescription = "Album Cover",
-                    modifier = Modifier.size(200.dp)
-                )
+        PlayerProgress(
+            currentTime = currentTime,
+            duration = duration,
+            onSeek = { newPosition ->
+                currentTime = newPosition
+                youTubePlayerState.value?.seekTo(newPosition)
             }
+        )
 
-            // 标题和艺术家
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = videoInfo?.title ?: "Loading...",
-                    style = MaterialTheme.typography.titleLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = videoInfo?.channelTitle ?: "",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-            }
-
-            // 进度条
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Slider(
-                    value = currentTime,
-                    onValueChange = { currentTime = it },
-                    valueRange = 0f..100f,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(text = "0:00")
-                    Text(text = "3:45")
+        PlayerControls(
+            isPlaying = isPlaying,
+            playMode = playMode,
+            onPlayPauseClick = {
+                isPlaying = !isPlaying
+                youTubePlayerState.value?.let { player ->
+                    if (isPlaying) player.play() else player.pause()
                 }
-            }
-
-            // 控制按钮
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = { /* TODO */ }) {
-                    Icon(Icons.Default.SkipPrevious, "Previous")
+            },
+            onPreviousClick = { /* TODO */ },
+            onNextClick = { /* TODO */ },
+            onPlayModeClick = {
+                playMode = when (playMode) {
+                    PlayMode.SEQUENCE -> PlayMode.LOOP_ALL
+                    PlayMode.LOOP_ALL -> PlayMode.SHUFFLE
+                    PlayMode.SHUFFLE -> PlayMode.LOOP_ONE
+                    PlayMode.LOOP_ONE -> PlayMode.SEQUENCE
                 }
-
-                FilledIconButton(
-                    onClick = {
-                        isPlaying = !isPlaying
-                        youTubePlayerState.value?.let { player ->
-                            if (isPlaying) player.play() else player.pause()
-                        }
-                    },
-                    modifier = Modifier.size(64.dp)
-                ) {
-                    Icon(
-                        if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        "Play/Pause",
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-
-                IconButton(onClick = { /* TODO */ }) {
-                    Icon(Icons.Default.SkipNext, "Next")
-                }
-            }
-        }
+            },
+            onPlaylistClick = { showPlaylist = true }
+        )
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PlayerPreview() {
-    Player()
 }
