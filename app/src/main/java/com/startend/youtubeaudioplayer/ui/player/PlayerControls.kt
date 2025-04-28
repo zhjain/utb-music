@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.startend.youtubeaudioplayer.data.PlayMode
+import com.startend.youtubeaudioplayer.data.model.PlayMode
 
 @Composable
 fun PlayerControls(

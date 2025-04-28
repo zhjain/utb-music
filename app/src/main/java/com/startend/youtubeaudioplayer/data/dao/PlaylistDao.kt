@@ -1,6 +1,8 @@
-package com.startend.youtubeaudioplayer.data
+package com.startend.youtubeaudioplayer.data.dao
 
 import androidx.room.*
+import com.startend.youtubeaudioplayer.data.model.Playlist
+import com.startend.youtubeaudioplayer.data.model.PlaylistItem
 import kotlinx.coroutines.flow.Flow
 
 @Dao

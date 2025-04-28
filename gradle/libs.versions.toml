@@ -19,6 +19,7 @@ material = "1.7.8"
 coil = "2.5.0"
 room = "2.7.1"
 navigation = "2.8.9"
+media = "1.6.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -46,6 +47,7 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
+androidx-media = { group = "androidx.media", name = "media", version.ref = "media" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

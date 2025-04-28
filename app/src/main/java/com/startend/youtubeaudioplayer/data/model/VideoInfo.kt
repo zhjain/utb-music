@@ -1,4 +1,4 @@
-package com.startend.youtubeaudioplayer.data
+package com.startend.youtubeaudioplayer.data.model
 
 data class VideoInfo(
     val id: String,

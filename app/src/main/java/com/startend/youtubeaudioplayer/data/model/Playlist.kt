@@ -1,4 +1,4 @@
-package com.startend.youtubeaudioplayer.data
+package com.startend.youtubeaudioplayer.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

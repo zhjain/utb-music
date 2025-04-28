@@ -1,4 +1,4 @@
-package com.startend.youtubeaudioplayer.data
+package com.startend.youtubeaudioplayer.data.model
 
 enum class PlayMode {
     SEQUENCE,    // 顺序播放

@@ -19,6 +19,7 @@ fun YouTubePlayerView(
     onDuration: (Float) -> Unit,
     videoId: String
 ) {
+    // 使用key参数确保videoId变化时重新创建视图
     Box(
         modifier = Modifier
             .height(0.dp)
@@ -45,7 +46,19 @@ fun YouTubePlayerView(
                         override fun onStateChange(youTubePlayer: YouTubePlayer, state: PlayerConstants.PlayerState) {
                             onStateChange(state)
                         }
+
+                        override fun onVideoId(youTubePlayer: YouTubePlayer, videoId: String) {
+                            // 视频ID变化时的处理
+                            super.onVideoId(youTubePlayer, videoId)
+                        }
                     })
+                }
+            },
+            update = { view ->
+                // 当videoId变化时，更新播放的视频
+                youTubePlayerState.value?.let { player ->
+                    // 直接加载新视频
+                    player.loadVideo(videoId, 0f)
                 }
             },
             modifier = Modifier.height(0.dp)
