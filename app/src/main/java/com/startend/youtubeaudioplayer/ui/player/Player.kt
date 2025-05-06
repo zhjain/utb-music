@@ -28,6 +28,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -75,7 +76,7 @@ fun Player(
     var currentPlaylistId by remember { mutableStateOf<Long?>(null) }
     var currentPlaylist by remember { mutableStateOf<Playlist?>(null) }
     var currentPlaylistItems by remember { mutableStateOf<List<PlaylistItem>>(emptyList()) }
-    var currentPlayingItemIndex by remember { mutableStateOf(0) }
+    var currentPlayingItemIndex by remember { mutableIntStateOf(0) }
     var currentVideoId by remember { mutableStateOf<String?>(null) }
     
     // 显示播放列表选择还是播放列表内容

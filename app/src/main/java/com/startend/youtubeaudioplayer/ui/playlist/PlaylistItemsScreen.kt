@@ -24,10 +24,10 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun PlaylistItemsScreen(
+    modifier: Modifier = Modifier,
     playlistId: Long,
     onItemSelected: (PlaylistItem) -> Unit,
     currentPlayingItemId: String? = null,
-    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()

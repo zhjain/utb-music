@@ -17,6 +17,17 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // 优先从环境变量读取 YOUTUBE_API_KEY
+        val envApiKey = System.getenv("YOUTUBE_API_KEY")
+        // 如果环境变量不存在，回退到 gradle.properties
+        val gradleApiKey= project.findProperty("youtube.api.key") as? String
+        // 确定最终的 apiKey 值
+        val apiKey = envApiKey ?: gradleApiKey ?: throw IllegalStateException(
+            "YOUTUBE_API_KEY must be set in environment variables or gradle.properties"
+        )
+        // 注入到 BuildConfig
+        buildConfigField("String", "YOUTUBE_API_KEY", "\"$apiKey\"")
     }
 
     buildTypes {
@@ -43,6 +54,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true  // 启用 BuildConfig 生成
     }
     packaging {
         resources {

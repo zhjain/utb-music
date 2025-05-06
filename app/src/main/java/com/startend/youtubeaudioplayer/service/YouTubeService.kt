@@ -7,6 +7,7 @@ import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.youtube.YouTube
 import com.google.api.services.youtube.model.VideoListResponse
+import com.startend.youtubeaudioplayer.BuildConfig
 import com.startend.youtubeaudioplayer.data.database.AppDatabase
 import com.startend.youtubeaudioplayer.data.model.VideoInfo
 import com.startend.youtubeaudioplayer.data.repository.VideoInfoRepository
@@ -15,7 +16,17 @@ import kotlinx.coroutines.withContext
 
 class YouTubeService(context: Context) {
     companion object {
-        private const val API_KEY = "AIzaSyBVCOaK_vhgfKhOI_Uu8YR1IijEYp6a6Wg" // 替换为你的 API key
+        // 从 BuildConfig 或环境变量获取 API 密钥
+        private val API_KEY: String by lazy {
+            try {
+                val buildConfigKey = BuildConfig.YOUTUBE_API_KEY
+                if (buildConfigKey.isNotEmpty()) buildConfigKey
+                else System.getenv("API_KEY") ?: ""
+            } catch (e: Exception) {
+                // 如果 BuildConfig 访问失败，尝试从环境变量获取
+                System.getenv("API_KEY") ?: ""
+            }
+        }
         private const val APPLICATION_NAME = "YoutubeAudioPlayer"
         private val JSON_FACTORY = JacksonFactory.getDefaultInstance()
     }
