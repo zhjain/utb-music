@@ -1,5 +1,6 @@
 *.iml
-.gradle
+.gradle/
+gradle-app.setting
 /local.properties
 /.idea/caches
 /.idea/libraries
@@ -8,6 +9,7 @@
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 /.idea/deploymentTargetSelector.xml
+/.idea/AugmentWebviewStateStore.xml
 .DS_Store
 /build
 /captures
@@ -24,3 +26,20 @@ local.properties
 # 添加 Kotlin 编译器临时文件
 .kotlin/
 *.salive
+
+# Room 数据库的备份文件
+*.db-shm
+*.db-wal
+
+# Android Studio 生成的其他文件
+/.idea/jarRepositories.xml
+/.idea/compiler.xml
+/.idea/misc.xml
+/.idea/gradle.xml
+/.idea/kotlinc.xml
+
+# 日志文件
+*.log
+
+# 系统文件
+Thumbs.db
