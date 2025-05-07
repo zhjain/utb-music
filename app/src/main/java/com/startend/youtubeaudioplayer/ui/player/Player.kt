@@ -52,6 +52,7 @@ import com.startend.youtubeaudioplayer.ui.playlist.PlaylistItemsScreen
 import com.startend.youtubeaudioplayer.ui.playlist.PlaylistScreen
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -131,6 +132,32 @@ fun Player(
 
         currentPlayingItemIndex = prevIndex
         playItem(currentPlaylistItems[prevIndex])
+    }
+
+    // 处理视频播放结束
+    fun handleVideoEnded() {
+        when (playMode) {
+            PlayMode.SEQUENCE -> {
+                // 顺序播放：播放下一首，如果是最后一首则停止
+                if (currentPlayingItemIndex < currentPlaylistItems.size - 1) {
+                    playNext()
+                }
+            }
+            PlayMode.LOOP_ALL -> {
+                // 循环播放：总是播放下一首
+                playNext()
+            }
+            PlayMode.SHUFFLE -> {
+                // 随机播放：随机选择下一首
+                playNext() // playNext 方法已经包含了随机逻辑
+            }
+            PlayMode.LOOP_ONE -> {
+                // 单曲循环：重新播放当前歌曲
+                currentPlaylistItems.getOrNull(currentPlayingItemIndex)?.let { item ->
+                    playItem(item)
+                }
+            }
+        }
     }
 
     // 绑定服务
@@ -284,7 +311,8 @@ fun Player(
             },
             onCurrentSecond = { second -> currentTime = second },
             onDuration = { videoDuration -> duration = videoDuration },
-            videoId = currentVideoId ?: "8ZP5eqm4JqM" // 使用当前播放的视频ID或默认ID
+            videoId = currentVideoId ?: "8ZP5eqm4JqM", // 使用当前播放的视频ID或默认ID
+            onVideoEnded = { handleVideoEnded() } // 添加视频结束回调
         )
 
         PlayerCover(
@@ -315,8 +343,30 @@ fun Player(
             currentTime = currentTime,
             duration = duration,
             onSeek = { newPosition ->
+                // 立即更新UI显示的当前时间，避免闪烁
                 currentTime = newPosition
-                youTubePlayerState.value?.seekTo(newPosition)
+                
+                // 强制执行seek操作，确保位置更新
+                youTubePlayerState.value?.let { player ->
+                    // 先暂停播放，避免seek后立即被覆盖
+                    val wasPlaying = isPlaying
+                    if (wasPlaying) {
+                        player.pause()
+                        isPlaying = false
+                    }
+                    
+                    // 执行seek操作
+                    player.seekTo(newPosition)
+                    
+                    // 延迟恢复播放，确保seek操作完成
+                    scope.launch {
+                        delay(100) // 短暂延迟
+                        if (wasPlaying) {
+                            player.play()
+                            isPlaying = true
+                        }
+                    }
+                }
             }
         )
 
@@ -324,14 +374,26 @@ fun Player(
             isPlaying = isPlaying,
             playMode = playMode,
             onPlayPauseClick = {
+                // 立即更新UI状态，提高响应速度
                 isPlaying = !isPlaying
-                youTubePlayerState.value?.let { player ->
-                    if (isPlaying) player.play() else player.pause()
-                    playbackService.value?.updatePlayingState(isPlaying)  // 添加这行来更新服务中的播放状态
+                
+                // 异步处理播放器操作
+                scope.launch {
+                    youTubePlayerState.value?.let { player ->
+                        if (isPlaying) player.play() else player.pause()
+                        // 更新服务中的播放状态
+                        playbackService.value?.updatePlayingState(isPlaying)
+                    }
                 }
             },
-            onPreviousClick = { playPrevious() },
-            onNextClick = { playNext() },
+            onPreviousClick = { 
+                // 使用协程异步处理，避免UI卡顿
+                scope.launch { playPrevious() } 
+            },
+            onNextClick = { 
+                // 使用协程异步处理，避免UI卡顿
+                scope.launch { playNext() } 
+            },
             onPlayModeClick = {
                 playMode = when (playMode) {
                     PlayMode.SEQUENCE -> PlayMode.LOOP_ALL

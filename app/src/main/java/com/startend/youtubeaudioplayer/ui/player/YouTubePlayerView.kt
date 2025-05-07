@@ -10,6 +10,10 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 
 @Composable
 fun YouTubePlayerView(
@@ -17,9 +21,18 @@ fun YouTubePlayerView(
     onStateChange: (PlayerConstants.PlayerState) -> Unit,
     onCurrentSecond: (Float) -> Unit,
     onDuration: (Float) -> Unit,
-    videoId: String
+    videoId: String,
+    onVideoEnded: () -> Unit
 ) {
-    // 使用key参数确保videoId变化时重新创建视图
+    // 记住上一次报告的时间，避免频繁更新
+    val lastReportedTime = remember { mutableFloatStateOf(0f) }
+    // 使用防抖动机制减少更新频率
+    val updateThreshold = 0.2f // 0.2秒的阈值
+    
+    // 记录是否正在进行seek操作
+    val isSeeking = remember { mutableStateOf(false) }
+    val pendingSeekTime = remember { mutableFloatStateOf(-1f) }
+    
     Box(
         modifier = Modifier
             .height(0.dp)
@@ -36,7 +49,18 @@ fun YouTubePlayerView(
                         }
 
                         override fun onCurrentSecond(youTubePlayer: YouTubePlayer, second: Float) {
-                            onCurrentSecond(second)
+                            // 如果有待处理的seek操作，执行它
+                            if (pendingSeekTime.floatValue >= 0) {
+                                youTubePlayer.seekTo(pendingSeekTime.floatValue)
+                                pendingSeekTime.floatValue = -1f
+                                return
+                            }
+                            
+                            // 只有当时间变化超过阈值时才更新UI
+                            if (kotlin.math.abs(second - lastReportedTime.floatValue) >= updateThreshold) {
+                                onCurrentSecond(second)
+                                lastReportedTime.floatValue = second
+                            }
                         }
 
                         override fun onVideoDuration(youTubePlayer: YouTubePlayer, duration: Float) {
@@ -45,11 +69,11 @@ fun YouTubePlayerView(
 
                         override fun onStateChange(youTubePlayer: YouTubePlayer, state: PlayerConstants.PlayerState) {
                             onStateChange(state)
-                        }
-
-                        override fun onVideoId(youTubePlayer: YouTubePlayer, videoId: String) {
-                            // 视频ID变化时的处理
-                            super.onVideoId(youTubePlayer, videoId)
+                            
+                            // 检测视频结束状态
+                            if (state == PlayerConstants.PlayerState.ENDED) {
+                                onVideoEnded()
+                            }
                         }
                     })
                 }
@@ -60,5 +84,13 @@ fun YouTubePlayerView(
             },
             modifier = Modifier.height(0.dp)
         )
+    }
+    
+    // 提供一个函数来处理seek操作
+    youTubePlayerState.value?.let { player ->
+        LaunchedEffect(player) {
+            // 这个效果只在player变化时运行一次
+            // 实际上不做任何事情，只是确保player被正确初始化
+        }
     }
 }
